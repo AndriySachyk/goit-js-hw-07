@@ -1,47 +1,56 @@
 
 import { galleryItems } from "./gallery-items.js";
 
+const galleryUl = document.querySelector(".gallery");
 
-const listGalleryUl = document.querySelector(".gallery");
 
-const itemLi = ({ preview, original, description }) => `
-<li class="gallery__item">
-  <a class="gallery__link" href=${original} data-original-img=${original}>
+const createGalleryItems = createItemLi(galleryItems)
+
+galleryUl.insertAdjacentHTML("beforeend", createGalleryItems);
+
+galleryUl.addEventListener('click', clickGalleryItem)
+
+function createItemLi(galleryItems) {
+  return galleryItems.map(({ preview, original, description }) => {
+    return `<li class="gallery__item">
+  <a class="gallery__link" href=${original}>
     <img
       class="gallery__image"
-      src="${preview}"
-    //   data-source="${original}"
-      alt="${description}"
+      src=${preview}
+      data-source=${original}
+      alt=${description}
     />
   </a>
-</li>
-`;
-
-listGalleryUl.innerHTML = galleryItems.map(itemLi).join('')
-
-
-const arryInstances = [];
+</li>`
+  }).join('');
+}
 
 
-listGalleryUl.addEventListener('click', (even) => {
-    even.preventDefault()
-    const originalLink = even.target
-        .closest(".gallery__item")
-        .getAttribute("data-original-img");
-    
-    const instance = basicLightbox.create(`<img scr=${original} >`);
-    arryInstances.push(originalLink);
-    originalLink.show()
-    document.addEventListener("keydown", (even) => onEsc(even, instance))
+function clickGalleryItem(even) {
+  even.preventDefault();
+
+  if (even.target.nodeName !== 'IMG') {
+    return
+  };
+const galleryLink = even.target.dataset.source;
+
+  console.log(galleryLink)
+const instance = basicLightbox.create(`
+    <img src=${galleryLink} width="800" height="600">`,
+{
+    onShow: (instance) => {
+    window.addEventListener('keydown', escCloseModal)
+    },
+  onClose: (instance) =>{
+    window.removeEventListener('keydown', escCloseModal)
+    }
 });
 
+function escCloseModal(even) {
+  if (even.code === "Escape") {
+    instance.close()
+  }
+}
 
-const onEsc = (even, instance)=> {
-    const escCode = "Escape";
-    if (even.code === escCode) {
-        instance.close();
-        arryInstances.splice(arryInstances.indexOf(instance), 1)
-    
-        document.removeEventListener("keydown", (even) => onEsc(even, instance))
-    }
+instance.show();
 }
